@@ -1,0 +1,108 @@
+ import pandas as pd
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    from sklearn.model_selection import train_test_split
+    from sklearn.linear_model import LinearRegression
+    from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from pathlib import Path
+file_path = Path(r'C:\Users\jarly\OneDrive\Documentos\UNAD\Análisis de Datos\Fase 3\Anexo 2 - Dataset Vehicle\Car_details_v3.csv')
+
+df = pd.read_csv(file_path)
+
+print("Primeras filas del dataset:")
+print(df.head())
+print("\nInformación del dataset:")
+print(df.info())
+print("\nEstadísticas descriptivas:")
+print(df.describe())
+
+# Configurar estilo de gráficos
+sns.set(style="whitegrid")
+
+# Información general del dataset
+data_info = df.info()
+
+# Resumen estadístico de las columnas numéricas
+data_describe = df.describe()
+
+# Graficar distribuciones para algunas variables clave
+plt.figure(figsize=(16, 8))
+
+# Distribución de precios de venta
+plt.subplot(2, 2, 1)
+sns.histplot(df['selling_price'], kde=True, color="blue")
+plt.title('Distribución de Precios de Venta')
+
+# Distribución de años
+plt.subplot(2, 2, 2)
+sns.histplot(df['year'], kde=True, color="green")
+plt.title('Distribución de Años')
+
+# Distribución de km_driven
+plt.subplot(2, 2, 3)
+sns.histplot(df['km_driven'], kde=True, color="purple")
+plt.title('Distribución de Kilómetros Recorridos')
+
+# Relación entre precio de venta y año
+plt.subplot(2, 2, 4)
+sns.scatterplot(data=df, x='year', y='selling_price', hue='fuel', palette='viridis')
+plt.title('Precio de Venta vs. Año')
+
+plt.tight_layout()
+plt.show()
+
+data_info, data_describe
+
+# Limpiar y transformar columnas
+
+# Eliminar unidades de las columnas `mileage`, `engine`, `max_power`
+# y convertirlas a valores numéricos.
+df['mileage'] = df['mileage'].astype(str).str.extract(r'(\d+\.\d+|\d+)').astype(float)
+df['engine'] = df['engine'].astype(str).str.extract(r'(\d+)').astype(float)
+df['max_power'] = df['max_power'].astype(str).str.extract(r'(\d+\.\d+|\d+)').astype(float)
+
+# Llenar valores faltantes con la mediana para las columnas numéricas
+df['mileage'] = df['mileage'].fillna(df['mileage'].median())
+df['engine'] = df['engine'].fillna(df['engine'].median())
+df['max_power'] = df['max_power'].fillna(df['max_power'].median())
+df['seats'] = df['seats'].fillna(df['seats'].median())
+
+# Verificar el resultado de la limpieza
+df.info(), df.describe()
+
+# Seleccionar solo las columnas numéricas
+numeric_df = df.select_dtypes(include=['float64', 'int64'])
+
+# Calcular la matriz de correlación en las columnas numéricas
+correlation_matrix = numeric_df.corr()
+
+# Visualizar la matriz de correlación
+plt.figure(figsize=(10, 8))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f")
+plt.title("Matriz de Correlación")
+plt.show()
+
+from sklearn.linear_model import LinearRegression
+
+# Seleccionar solo la característica 'year' para el análisis de regresión lineal
+X_year = X[['year']]
+y = df['selling_price']
+
+# Crear y ajustar el modelo de regresión lineal solo con 'year'
+linear_model_year = LinearRegression()
+linear_model_year.fit(X_year, y)
+
+# Hacer predicciones con el modelo
+y_pred_year = linear_model_year.predict(X_year)
+
+# Graficar los datos reales y la línea de regresión
+plt.figure(figsize=(10, 6))
+plt.scatter(X_year, y, color='blue', label="Datos reales", alpha=0.5)
+plt.plot(X_year, y_pred_year, color='red', label="Línea de regresión")
+
+plt.xlabel("Año del vehículo")
+plt.ylabel("Precio de venta")
+plt.title("Regresión lineal de Precio de Venta vs Año del Vehículo")
+plt.legend()
+plt.show()
